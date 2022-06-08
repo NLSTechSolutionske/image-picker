@@ -36,7 +36,7 @@ import java.util.*
  */
 class ImagePicker(
     private val mType: CropType,
-    val callback: (uri: Uri, image: File) -> Unit
+    private val callback: (uri: Uri, image: File) -> Unit
 ) : BottomSheetDialogFragment() {
 
     private var _binding: ImagePickerDialogBinding? = null
@@ -89,9 +89,6 @@ class ImagePicker(
                     takePictureFromCamera()
             }
             PickFrom.GALLERY -> {
-                if (!hasStoragePermission())
-                    prepareStorage()
-                else
                     takePictureFromGallery()
             }
         }
@@ -172,18 +169,6 @@ class ImagePicker(
         }
 
     /**
-     * STORAGE PERMISSION
-     */
-    private val storagePermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                takePictureFromGallery()
-            } else {
-                prepareStorage()
-            }
-        }
-
-    /**
      * PREPARE CAMERA
      */
     private fun prepareCamera() {
@@ -211,37 +196,6 @@ class ImagePicker(
     }
 
     /**
-     * PREPARE STORAGE
-     */
-    private fun prepareStorage() {
-        val storagePermission =
-            ActivityCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-
-        when (storagePermission == PackageManager.PERMISSION_GRANTED) {
-            true -> takePictureFromGallery()
-            false -> {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    requestStoragePermission(false)
-                    StoreManager.rationaleShown(
-                        requireContext(),
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    )
-                } else {
-
-                    val hadDenied = StoreManager.rationalesList(requireContext())
-                        .contains(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    requestStoragePermission(hadDenied)
-
-                }
-
-            }
-        }
-    }
-
-    /**
      * TAKE PICTURE
      */
     private fun takePictureFromCamera() {
@@ -256,7 +210,7 @@ class ImagePicker(
         file?.also {
             uri = FileProvider.getUriForFile(
                 requireContext(),
-                BuildConfig.LIBRARY_PACKAGE_NAME,
+                requireContext().applicationContext.packageName,
                 it
             )
 
@@ -294,40 +248,11 @@ class ImagePicker(
     }
 
     /**
-     * REQUEST STORAGE PERMISSION
-     */
-    private fun requestStoragePermission(hadCompletelyDenied: Boolean) {
-
-        val activity = requireActivity()
-
-        if (hadCompletelyDenied)
-            showConfirmDialog(
-                title = "Storage Permission",
-                content = getString(R.string.storage_permission_rationale)
-            ) {
-                openPermissionInSettings(activity)
-            }
-        else
-            storagePermissionLauncher.launch((Manifest.permission.READ_EXTERNAL_STORAGE))
-
-        dismiss()
-
-    }
-
-    /**
      * CHECK CAMERA PERMISSION
      */
     private fun hasCameraPermission() = ContextCompat.checkSelfPermission(
         requireContext(),
         Manifest.permission.CAMERA
-    ) == PackageManager.PERMISSION_GRANTED
-
-    /**
-     * CHECK STORAGE PERMISSION
-     */
-    private fun hasStoragePermission() = ContextCompat.checkSelfPermission(
-        requireContext(),
-        Manifest.permission.READ_EXTERNAL_STORAGE
     ) == PackageManager.PERMISSION_GRANTED
 
     /**
