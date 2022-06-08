@@ -2,4 +2,4 @@
 Does the following
 - get image from gallery or camera
 - crops image
-- retruns uri or file path
+- returns uri or file path
