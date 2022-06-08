@@ -4,13 +4,13 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="?actionBarSize"
-    android:padding="@dimen/layout_padding">
+    android:padding="16dp">
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/layout_padding"
+        android:padding="16dp"
         android:text="Upload from..."
         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,7 +21,7 @@
         android:id="@+id/gallery"
         android:layout_width="64dp"
         android:layout_height="0dp"
-        android:layout_margin="@dimen/layout_padding"
+        android:layout_margin="16dp"
         android:adjustViewBounds="true"
         android:background="?selectableItemBackgroundBorderless"
         android:clickable="true"
@@ -38,7 +38,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/view_padding"
+        android:padding="16dp"
         android:text="Gallery"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
         app:layout_constraintEnd_toEndOf="@id/gallery"
@@ -49,8 +49,8 @@
         android:id="@+id/camera"
         android:layout_width="64dp"
         android:layout_height="0dp"
-        android:layout_margin="@dimen/layout_padding"
-        android:layout_marginStart="@dimen/layout_padding"
+        android:layout_margin="16dp"
+        android:layout_marginStart="16dp"
         android:adjustViewBounds="true"
         android:clickable="true"
         android:focusable="true"
@@ -66,7 +66,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="@dimen/view_padding"
+        android:padding="16dp"
         android:text="Camera"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2"
         app:layout_constraintEnd_toEndOf="@id/camera"

@@ -3,7 +3,6 @@ package com.nlstechsolutions.libraries.image_picker
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
@@ -22,17 +21,12 @@ import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageView
 import com.canhub.cropper.options
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.mfinance.nls.madison.BuildConfig
-import com.mfinance.nls.madison.R
-import com.mfinance.nls.madison.core.AppManager
-import com.mfinance.nls.madison.databinding.ImagePickerDialogBinding
 import com.nlstechsolutions.libraries.image_picker.databinding.ImagePickerDialogBinding
-import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import java.util.*
-
 
 /**
  * mobile-app
@@ -155,14 +149,14 @@ class ImagePicker(
      *  PERMISSION CONFIRMATION DIALOG
      */
     private fun showConfirmDialog(title: String, content: String, requestPermission: () -> Unit) {
-        SweetAlerts.confirmAlert(
-            requireContext(),
-            title = title,
-            content = content,
-            cancelLabel = "Deny",
-            confirmLabel = "Grant",
-            confirmListener = { requestPermission.invoke() }
-        )
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(title)
+            .setMessage(content)
+            .setNegativeButton("deny") { _, _ -> }
+            .setPositiveButton("grant") { _, _ -> requestPermission.invoke() }
+            .show()
+
     }
 
     /**
@@ -202,10 +196,10 @@ class ImagePicker(
             false -> {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
                     requestCameraPermission(false)
-                    AppManager.rationaleShown(requireContext(), Manifest.permission.CAMERA)
+                    StoreManager.rationaleShown(requireContext(), Manifest.permission.CAMERA)
                 } else {
 
-                    val hadDenied = AppManager.rationalesList(requireContext())
+                    val hadDenied = StoreManager.rationalesList(requireContext())
                         .contains(Manifest.permission.CAMERA)
                     requestCameraPermission(hadDenied)
 
@@ -231,13 +225,13 @@ class ImagePicker(
             false -> {
                 if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
                     requestStoragePermission(false)
-                    AppManager.rationaleShown(
+                    StoreManager.rationaleShown(
                         requireContext(),
                         Manifest.permission.READ_EXTERNAL_STORAGE
                     )
                 } else {
 
-                    val hadDenied = AppManager.rationalesList(requireContext())
+                    val hadDenied = StoreManager.rationalesList(requireContext())
                         .contains(Manifest.permission.READ_EXTERNAL_STORAGE)
                     requestStoragePermission(hadDenied)
 
@@ -262,7 +256,7 @@ class ImagePicker(
         file?.also {
             uri = FileProvider.getUriForFile(
                 requireContext(),
-                BuildConfig.APPLICATION_ID,
+                BuildConfig.LIBRARY_PACKAGE_NAME,
                 it
             )
 
@@ -341,7 +335,7 @@ class ImagePicker(
      */
     private fun openPermissionInSettings(activity: FragmentActivity) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-        val uri = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+        val uri = Uri.fromParts("package", activity.applicationContext.packageName, null)
         intent.data = uri
         activity.startActivity(intent)
     }
