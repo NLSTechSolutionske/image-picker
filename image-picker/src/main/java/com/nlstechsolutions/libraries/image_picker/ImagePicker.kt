@@ -42,7 +42,6 @@ class ImagePicker(
     private val binding get() = _binding!!
     private lateinit var currentImagePath: String
     private lateinit var uri: Uri
-    private lateinit var cropUri: Uri
 
     internal enum class PickFrom {
         CAMERA, GALLERY
@@ -106,10 +105,10 @@ class ImagePicker(
                 this.dismiss()
             }
             true -> {
-                val uriContent = cropUri
-                val uriFile = File(cropUri.path ?: return@registerForActivityResult)
+                val uriContent = result.uriContent
+                val uriFile = File(result.uriContent?.path) ?: null
 
-                if (result.uriContent == null) {
+                if (uriContent == null || uriFile == null) {
                     Snackbar.make(binding.root, "Failed Cropping Image", Snackbar.LENGTH_SHORT)
                         .show()
                     this.dismiss()
@@ -284,49 +283,32 @@ class ImagePicker(
 
     private fun Uri.cropImage() {
 
-        val file: File? = try {
-            createImageFile()
-        } catch (exception: IOException) {
-            exception.printStackTrace()
-            null
-        }
+        cropPictureLauncher.launch(
+            options(uri = this) {
+                setActivityMenuIconColor(Color.WHITE)
+                setActivityTitle("Crop")
+                setCropMenuCropButtonTitle("SAVE")
+                setCropMenuCropButtonIcon(R.drawable.ic_baseline_done_24)
+                setAllowRotation(true)
+                setAllowCounterRotation(true)
+                setAllowFlipping(true)
+                setShowCropOverlay(true)
+                setScaleType(CropImageView.ScaleType.CENTER)
 
-        file?.also {
-            cropUri = FileProvider.getUriForFile(
-                requireContext(),
-                requireContext().applicationContext.packageName,
-                it
-            )
-
-            cropPictureLauncher.launch(
-                options(uri = this) {
-                    setActivityMenuIconColor(Color.WHITE)
-                    setActivityTitle("Crop")
-                    setCropMenuCropButtonTitle("SAVE")
-                    setCropMenuCropButtonIcon(R.drawable.ic_baseline_done_24)
-                    setAllowRotation(true)
-                    setAllowCounterRotation(true)
-                    setAllowFlipping(true)
-                    setShowCropOverlay(true)
-                    setScaleType(CropImageView.ScaleType.CENTER)
-                    setOutputUri(cropUri)
-
-                    when (mType) {
-                        CropType.SQUARE -> {
-                            setAspectRatio(1, 1)
-                            setCropShape(CropImageView.CropShape.OVAL)
-                            setFixAspectRatio(true)
-                        }
-                        else -> {
-                            setCropShape(CropImageView.CropShape.RECTANGLE)
-                        }
+                when (mType) {
+                    CropType.SQUARE -> {
+                        setAspectRatio(1, 1)
+                        setCropShape(CropImageView.CropShape.OVAL)
+                        setFixAspectRatio(true)
                     }
+                    else -> {
+                        setCropShape(CropImageView.CropShape.RECTANGLE)
+                    }
+                }
 
-                    setGuidelines(CropImageView.Guidelines.ON)
+                setGuidelines(CropImageView.Guidelines.ON)
                 }
             )
-        }
-
 
     }
 
