@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="camera_permission_rationale">Camera Is required to take picture, Please Grant permission to continue</string>
+    <string name="storage_permission_rationale">Gallery access permission is required to pick image, Please Grant permission to continue</string>
+</resources>
