@@ -33,10 +33,13 @@ import java.util.*
  * @email oyandovic@gmail.com
  * Created 6/7/22 at 9:06 AM
  */
-class ImagePicker(
-    private val mType: CropType,
-    private val callback: (uri: Uri, image: File) -> Unit
+class ImagePicker internal constructor(
+    builder: Builder
 ) : BottomSheetDialogFragment() {
+
+
+    val mType: CropType = builder.type
+    val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
 
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
@@ -45,6 +48,25 @@ class ImagePicker(
 
     internal enum class PickFrom {
         CAMERA, GALLERY
+    }
+
+    class Builder constructor(private val activity: FragmentActivity) {
+        internal var type: CropType = CropType.FREE
+        internal var callback: ((uri: Uri, image: File) -> Unit)? = null
+
+
+        fun cropType(type: CropType) = apply {
+            this.type = type
+        }
+
+        fun resultUri(callback: (uri: Uri, image: File) -> Unit) = apply {
+            this.callback = callback
+        }
+
+        fun show() = apply {
+            ImagePicker(this).show(activity)
+        }
+
     }
 
     enum class CropType {
@@ -88,7 +110,7 @@ class ImagePicker(
                     takePictureFromCamera()
             }
             PickFrom.GALLERY -> {
-                    takePictureFromGallery()
+                takePictureFromGallery()
             }
         }
 
@@ -116,7 +138,7 @@ class ImagePicker(
                 }
 
                 this.dismiss()
-                callback.invoke(uriContent, uriFile)
+                callback?.invoke(uriContent, uriFile)
 
             }
         }
