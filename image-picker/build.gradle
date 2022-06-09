@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -50,4 +51,18 @@ dependencies {
     // Serialization
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2'
 
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId = 'com.nlstechsolutions.libraries'
+                artifactId = 'image-picker'
+                version = '1.0.0-beta'
+            }
+        }
+    }
 }
