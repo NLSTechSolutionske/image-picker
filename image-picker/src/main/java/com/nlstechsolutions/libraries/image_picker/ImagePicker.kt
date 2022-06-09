@@ -16,7 +16,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.fragment.app.FragmentActivity
-import androidx.viewbinding.BuildConfig
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageView
 import com.canhub.cropper.options
@@ -107,7 +106,7 @@ class ImagePicker(
             }
             true -> {
                 val uriContent = result.uriContent
-                val uriFile = result.getUriFilePath(requireContext())?.let { File(it) }
+                val uriFile = File(result.uriContent?.path) ?: null
 
                 if (uriContent == null || uriFile == null) {
                     Snackbar.make(binding.root, "Failed Cropping Image", Snackbar.LENGTH_SHORT)
@@ -308,8 +307,8 @@ class ImagePicker(
                 }
 
                 setGuidelines(CropImageView.Guidelines.ON)
-            }
-        )
+                }
+            )
 
     }
 
