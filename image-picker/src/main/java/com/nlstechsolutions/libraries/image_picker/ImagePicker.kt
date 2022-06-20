@@ -1,13 +1,16 @@
 package com.nlstechsolutions.libraries.image_picker
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,7 +27,9 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.nlstechsolutions.libraries.image_picker.databinding.ImagePickerDialogBinding
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.io.InputStream
 import java.util.*
 
 /**
@@ -33,18 +38,42 @@ import java.util.*
  * @email oyandovic@gmail.com
  * Created 6/7/22 at 9:06 AM
  */
-class ImagePicker(
-    private val mType: CropType,
-    private val callback: (uri: Uri, image: File) -> Unit
+class ImagePicker internal constructor(
+    builder: Builder
 ) : BottomSheetDialogFragment() {
+
+    private val mContext: Context = builder.context
+    private val mType: CropType = builder.type
+    private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
 
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
+
     private lateinit var currentImagePath: String
     private lateinit var uri: Uri
 
     internal enum class PickFrom {
         CAMERA, GALLERY
+    }
+
+    class Builder constructor(private val activity: FragmentActivity) {
+
+        internal var context: Context = activity.applicationContext
+        internal var type: CropType = CropType.FREE
+        internal var callback: ((uri: Uri, image: File) -> Unit)? = null
+
+        fun cropType(type: CropType) = apply {
+            this.type = type
+        }
+
+        fun resultUri(callback: (uri: Uri, image: File) -> Unit) = apply {
+            this.callback = callback
+        }
+
+        fun show() = apply {
+            ImagePicker(this).show(activity)
+        }
+
     }
 
     enum class CropType {
@@ -88,7 +117,7 @@ class ImagePicker(
                     takePictureFromCamera()
             }
             PickFrom.GALLERY -> {
-                    takePictureFromGallery()
+                takePictureFromGallery()
             }
         }
 
@@ -105,22 +134,33 @@ class ImagePicker(
                 this.dismiss()
             }
             true -> {
-                val uriContent = result.uriContent
-                val uriFile = File(result.uriContent?.path) ?: null
+                val uri = result.uriContent
 
-                if (uriContent == null || uriFile == null) {
-                    Snackbar.make(binding.root, "Failed Cropping Image", Snackbar.LENGTH_SHORT)
-                        .show()
-                    this.dismiss()
+                if (uri == null) {
+                    exitWithCroppingError()
+                    return@registerForActivityResult
+                }
+
+                val defaultFile = File(uri.path)
+                val file = if (defaultFile.exists()) defaultFile else getFile(mContext, uri)
+
+                if (file == null) {
+                    exitWithCroppingError()
                     return@registerForActivityResult
                 }
 
                 this.dismiss()
-                callback.invoke(uriContent, uriFile)
+                callback?.invoke(uri, file)
 
             }
         }
 
+    }
+
+    private fun exitWithCroppingError() {
+        Snackbar.make(binding.root, "Failed Cropping Image", Snackbar.LENGTH_SHORT)
+            .show()
+        this.dismiss()
     }
 
     /**
@@ -307,9 +347,53 @@ class ImagePicker(
                 }
 
                 setGuidelines(CropImageView.Guidelines.ON)
-                }
-            )
+            }
+        )
 
+    }
+
+    private fun getFile(context: Context, uri: Uri): File? {
+        val destinationFilename =
+            File(context.filesDir.path + File.separatorChar + queryName(context, uri))
+        try {
+            context.contentResolver.openInputStream(uri).use { ins ->
+                createFileFromStream(
+                    ins!!,
+                    destinationFilename
+                )
+            }
+        } catch (ex: Exception) {
+            Log.e("Save File ", ex.localizedMessage)
+            ex.printStackTrace()
+        }
+        return destinationFilename
+    }
+
+    private fun createFileFromStream(ins: InputStream, destination: File?) {
+        try {
+            FileOutputStream(destination).use { os ->
+                val buffer = ByteArray(4096)
+                var length: Int
+                while (ins.read(buffer).also { length = it } > 0) {
+                    os.write(buffer, 0, length)
+                }
+                os.flush()
+            }
+        } catch (ex: Exception) {
+            Log.e("Save File", ex.localizedMessage)
+            ex.printStackTrace()
+        }
+    }
+
+    private fun queryName(context: Context, uri: Uri): String? {
+        val returnCursor = context.contentResolver.query(uri, null, null, null, null)
+        return if (returnCursor != null) {
+            val nameIndex = returnCursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            returnCursor.moveToFirst()
+            val name = returnCursor.getString(nameIndex)
+            returnCursor.close()
+            name
+        } else null
     }
 
 }
