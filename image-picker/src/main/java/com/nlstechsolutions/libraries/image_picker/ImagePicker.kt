@@ -46,6 +46,7 @@ class ImagePicker internal constructor(
     private val mType: CropType = builder.type
     private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
 
+
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
 
@@ -58,8 +59,15 @@ class ImagePicker internal constructor(
 
     class Builder constructor(private val activity: FragmentActivity) {
 
+        @get:JvmSynthetic
+        @set: JvmSynthetic
         internal var context: Context = activity.applicationContext
+        @get:JvmSynthetic
+        @set: JvmSynthetic
         internal var type: CropType = CropType.FREE
+
+        @get:JvmSynthetic
+        @set: JvmSynthetic
         internal var callback: ((uri: Uri, image: File) -> Unit)? = null
 
         fun cropType(type: CropType) = apply {
