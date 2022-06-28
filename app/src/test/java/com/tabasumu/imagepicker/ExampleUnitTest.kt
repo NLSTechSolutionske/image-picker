@@ -1,4 +1,4 @@
-package com.nlstechsolutions.imagepicker
+package com.tabasumu.imagepicker
 
 import org.junit.Test
 

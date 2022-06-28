@@ -1,10 +1,10 @@
-package com.nlstechsolutions.imagepicker;
+package com.tabasumu.imagepicker;
 
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.nlstechsolutions.libraries.image_picker.ImagePicker;
+import com.tabasumu.libraries.image_picker.ImagePicker;
 
 public class MainTestActivity extends AppCompatActivity {
 

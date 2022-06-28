@@ -1,4 +1,4 @@
-package com.nlstechsolutions.libraries.image_picker
+package com.tabasumu.libraries.image_picker
 
 import android.Manifest
 import android.content.Context
@@ -25,7 +25,7 @@ import com.canhub.cropper.options
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.nlstechsolutions.libraries.image_picker.databinding.ImagePickerDialogBinding
+import com.tabasumu.libraries.image_picker.databinding.ImagePickerDialogBinding
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -46,7 +46,6 @@ class ImagePicker internal constructor(
     private val mType: CropType = builder.type
     private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
 
-
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
 
@@ -62,6 +61,7 @@ class ImagePicker internal constructor(
         @get:JvmSynthetic
         @set: JvmSynthetic
         internal var context: Context = activity.applicationContext
+
         @get:JvmSynthetic
         @set: JvmSynthetic
         internal var type: CropType = CropType.FREE

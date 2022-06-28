@@ -1,4 +1,4 @@
-package com.nlstechsolutions.imagepicker
+package com.tabasumu.imagepicker
 
 import android.net.Uri
 import android.os.Bundle
@@ -7,8 +7,8 @@ import android.view.LayoutInflater
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
-import com.nlstechsolutions.imagepicker.databinding.ActivityMainBinding
-import com.nlstechsolutions.libraries.image_picker.ImagePicker
+import com.tabasumu.imagepicker.databinding.ActivityMainBinding
+import com.tabasumu.libraries.image_picker.ImagePicker
 import java.io.File
 
 class MainActivity : AppCompatActivity() {

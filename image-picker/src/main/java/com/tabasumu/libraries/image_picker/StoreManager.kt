@@ -1,4 +1,4 @@
-package com.nlstechsolutions.libraries.image_picker
+package com.tabasumu.libraries.image_picker
 
 import android.content.Context
 import android.content.SharedPreferences

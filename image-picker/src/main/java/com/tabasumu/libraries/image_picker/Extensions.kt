@@ -1,4 +1,4 @@
-package com.nlstechsolutions.libraries.image_picker
+package com.tabasumu.libraries.image_picker
 
 import androidx.fragment.app.FragmentActivity
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
