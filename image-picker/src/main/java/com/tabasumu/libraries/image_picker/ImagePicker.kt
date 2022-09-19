@@ -45,6 +45,7 @@ class ImagePicker internal constructor(
     private val mContext: Context = builder.context
     private val mType: CropType = builder.type
     private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
+    private val isCropping: Boolean = builder.isCropping
 
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
@@ -69,6 +70,14 @@ class ImagePicker internal constructor(
         @get:JvmSynthetic
         @set: JvmSynthetic
         internal var callback: ((uri: Uri, image: File) -> Unit)? = null
+
+        @get:JvmSynthetic
+        @set: JvmSynthetic
+        internal var isCropping: Boolean = false
+
+        fun isCropping(isCropping: Boolean = true) = apply {
+            this.isCropping = isCropping
+        }
 
         fun cropType(type: CropType) = apply {
             this.type = type
@@ -157,8 +166,7 @@ class ImagePicker internal constructor(
                     return@registerForActivityResult
                 }
 
-                this.dismiss()
-                callback?.invoke(uri, file)
+                returnResult(uri)
 
             }
         }
@@ -177,7 +185,10 @@ class ImagePicker internal constructor(
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
-                uri.cropImage()
+                if (isCropping)
+                    uri.cropImage()
+                else
+                   returnResult(uri)
             }
         }
 
@@ -192,10 +203,10 @@ class ImagePicker internal constructor(
     /**
      *  PERMISSION CONFIRMATION DIALOG
      */
-    private fun showConfirmDialog(title: String, content: String, requestPermission: () -> Unit) {
+    private fun showConfirmDialog(content: String, requestPermission: () -> Unit) {
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle(title)
+            .setTitle("Camera Permission")
             .setMessage(content)
             .setNegativeButton("deny") { _, _ -> }
             .setPositiveButton("grant") { _, _ -> requestPermission.invoke() }
@@ -229,13 +240,13 @@ class ImagePicker internal constructor(
                 if (shouldShowRequestPermissionRationale(Manifest.permission.CAMERA)) {
                     requestCameraPermission(false)
                     StoreManager.rationaleShown(requireContext(), Manifest.permission.CAMERA)
-                } else {
-
-                    val hadDenied = StoreManager.rationalesList(requireContext())
-                        .contains(Manifest.permission.CAMERA)
-                    requestCameraPermission(hadDenied)
-
+                    return
                 }
+
+                val hadDenied = StoreManager.rationalesList(requireContext())
+                    .contains(Manifest.permission.CAMERA)
+
+                requestCameraPermission(hadDenied)
 
             }
         }
@@ -282,7 +293,6 @@ class ImagePicker internal constructor(
 
         if (hadCompletelyDenied)
             showConfirmDialog(
-                title = "Camera Permission",
                 content = getString(R.string.camera_permission_rationale)
             ) {
                 openPermissionInSettings(activity)
@@ -402,6 +412,21 @@ class ImagePicker internal constructor(
             returnCursor.close()
             name
         } else null
+    }
+
+    private fun returnResult(uri: Uri){
+
+        val defaultFile = File(uri.path)
+        val file = if (defaultFile.exists()) defaultFile else getFile(mContext, uri)
+
+        if (file == null) {
+            exitWithCroppingError()
+            return
+        }
+
+        callback?.invoke(uri, file)
+        dismiss()
+
     }
 
 }

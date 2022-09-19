@@ -14,5 +14,10 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ImagePicker"
-include ':app'
+
+// library
 include ':image-picker'
+
+// apps
+include ':offlineimagepicker'
+include ':onlineimagepicker'
