@@ -14,9 +14,12 @@ public class MainTestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main_test);
 
 
-        new ImagePicker.Builder(this).cropType(ImagePicker.CropType.FREE).resultUri((uri, file) -> {
+        new ImagePicker.Builder(this)
+                .isCropping(false)
+                .cropType(ImagePicker.CropType.FREE)
+                .resultUri((uri, file) -> {
 
-            return null;
-        }).show();
+                    return null;
+                }).show();
     }
 }
