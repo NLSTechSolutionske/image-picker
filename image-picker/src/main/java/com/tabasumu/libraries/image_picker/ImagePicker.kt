@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import com.canhub.cropper.CropImageContract
 import com.canhub.cropper.CropImageView
@@ -44,6 +45,7 @@ class ImagePicker internal constructor(
 
     private val mContext: Context = builder.context
     private val mType: CropType = builder.type
+    private val mPick: PickFrom = builder.pick
     private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
     private val isCropping: Boolean = builder.isCropping
 
@@ -52,10 +54,6 @@ class ImagePicker internal constructor(
 
     private lateinit var currentImagePath: String
     private lateinit var uri: Uri
-
-    internal enum class PickFrom {
-        CAMERA, GALLERY
-    }
 
     class Builder constructor(private val activity: FragmentActivity) {
 
@@ -66,6 +64,10 @@ class ImagePicker internal constructor(
         @get:JvmSynthetic
         @set: JvmSynthetic
         internal var type: CropType = CropType.FREE
+
+        @get:JvmSynthetic
+        @set: JvmSynthetic
+        internal var pick: PickFrom = PickFrom.ALL
 
         @get:JvmSynthetic
         @set: JvmSynthetic
@@ -83,6 +85,10 @@ class ImagePicker internal constructor(
             this.type = type
         }
 
+        fun pickFrom(from: PickFrom) = apply {
+            this.pick = from
+        }
+
         fun resultUri(callback: (uri: Uri, image: File) -> Unit) = apply {
             this.callback = callback
         }
@@ -93,6 +99,10 @@ class ImagePicker internal constructor(
 
     }
 
+    enum class PickFrom {
+        CAMERA, GALLERY, ALL
+    }
+
     enum class CropType {
         SQUARE, FREE, RECTANGLE_HORIZONTAL, RECTANGLE_VERTICAL
     }
@@ -101,9 +111,11 @@ class ImagePicker internal constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View {
+    ): View? {
         _binding = ImagePickerDialogBinding.inflate(inflater, container, false)
-        return binding.root
+        return binding.root.apply {
+            isVisible = mPick == PickFrom.ALL
+        }
     }
 
     override fun onDestroyView() {
@@ -114,30 +126,26 @@ class ImagePicker internal constructor(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.camera.setOnClickListener {
-            launchImagePicker(PickFrom.CAMERA)
-        }
+        when (mPick) {
+            PickFrom.CAMERA -> initPickFromCamera()
+            PickFrom.GALLERY -> takePictureFromGallery()
+            PickFrom.ALL -> {
+                binding.camera.setOnClickListener {
+                    initPickFromCamera()
+                }
 
-        binding.gallery.setOnClickListener {
-            launchImagePicker(PickFrom.GALLERY)
+                binding.gallery.setOnClickListener {
+                    takePictureFromGallery()
+                }
+            }
         }
-
     }
 
-    private fun launchImagePicker(from: PickFrom) {
-
-        when (from) {
-            PickFrom.CAMERA -> {
-                if (!hasCameraPermission())
-                    prepareCamera()
-                else
-                    takePictureFromCamera()
-            }
-            PickFrom.GALLERY -> {
-                takePictureFromGallery()
-            }
-        }
-
+    private fun initPickFromCamera() {
+        if (!hasCameraPermission())
+            prepareCamera()
+        else
+            takePictureFromCamera()
     }
 
     /**
@@ -188,7 +196,9 @@ class ImagePicker internal constructor(
                 if (isCropping)
                     uri.cropImage()
                 else
-                   returnResult(uri)
+                    returnResult(uri)
+            } else {
+                dismiss()
             }
         }
 
@@ -197,7 +207,10 @@ class ImagePicker internal constructor(
      */
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            uri?.cropImage()
+            if (uri == null)
+                dismiss()
+            else
+                uri.cropImage()
         }
 
     /**
@@ -414,7 +427,7 @@ class ImagePicker internal constructor(
         } else null
     }
 
-    private fun returnResult(uri: Uri){
+    private fun returnResult(uri: Uri) {
 
         val defaultFile = File(uri.path)
         val file = if (defaultFile.exists()) defaultFile else getFile(mContext, uri)
