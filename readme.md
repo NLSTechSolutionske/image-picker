@@ -128,6 +128,7 @@ In your app module find `build.gradle` and add :
         ImagePicker.Builder(this)
             .isCropping(true) // set to false by default
             .cropType(ImagePicker.CropType.FREE)  // set to free by default
+            .pickFrom(ImagePicker.PickFrom.ALL)  // set to all by default
             .resultUri { uri: Uri, file: File ->
                 // use uri or file depending on your needs
             }.show()
@@ -139,6 +140,7 @@ In your app module find `build.gradle` and add :
         new ImagePicker.Builder(this)
                 .isCropping(true) // set to false by default
                 .cropType(ImagePicker.CropType.FREE) // set to free by default
+                .pickFrom(ImagePicker.PickFrom.ALL)  // set to all by default
                 .resultUri { uri: Uri, file: File ->
                     // use uri or file depending on your needs
                 }.show()
