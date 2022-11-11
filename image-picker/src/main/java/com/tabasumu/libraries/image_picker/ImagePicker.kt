@@ -200,8 +200,9 @@ class ImagePicker internal constructor(
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri == null)
                 dismiss()
-            else
+            else if (mCropType != null)
                 uri.cropImage()
+            else returnResult(uri)
         }
 
     /**

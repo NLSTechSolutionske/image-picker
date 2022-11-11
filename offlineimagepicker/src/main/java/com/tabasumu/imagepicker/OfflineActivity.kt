@@ -39,7 +39,7 @@ class OfflineActivity : AppCompatActivity() {
     private fun pickImage() {
         ImagePicker.Builder(this)
             //.cropType(ImagePicker.CropType.FREE)
-            .pickFrom(ImagePicker.PickFrom.CAMERA)
+            .pickFrom(ImagePicker.PickFrom.GALLERY)
             .resultUri { uri, file ->
 
                 Log.i(TAG, "pickImage: URI EXISTS -> ${uri != null}")
