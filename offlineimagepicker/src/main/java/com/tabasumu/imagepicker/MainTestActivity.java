@@ -15,7 +15,6 @@ public class MainTestActivity extends AppCompatActivity {
 
 
         new ImagePicker.Builder(this)
-                .isCropping(false)
                 .cropType(ImagePicker.CropType.FREE)
                 .resultUri((uri, file) -> {
 

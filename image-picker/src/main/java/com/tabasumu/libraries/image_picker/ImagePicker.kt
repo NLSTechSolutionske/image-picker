@@ -44,11 +44,9 @@ class ImagePicker internal constructor(
 ) : BottomSheetDialogFragment() {
 
     private val mContext: Context = builder.context
-    private val mType: CropType = builder.type
+    private val mCropType: CropType? = builder.type
     private val mPick: PickFrom = builder.pick
     private val callback: ((uri: Uri, image: File) -> Unit)? = builder.callback
-    private val isCropping: Boolean = builder.isCropping
-
     private var _binding: ImagePickerDialogBinding? = null
     private val binding get() = _binding!!
 
@@ -63,7 +61,7 @@ class ImagePicker internal constructor(
 
         @get:JvmSynthetic
         @set: JvmSynthetic
-        internal var type: CropType = CropType.FREE
+        internal var type: CropType? = null
 
         @get:JvmSynthetic
         @set: JvmSynthetic
@@ -73,13 +71,6 @@ class ImagePicker internal constructor(
         @set: JvmSynthetic
         internal var callback: ((uri: Uri, image: File) -> Unit)? = null
 
-        @get:JvmSynthetic
-        @set: JvmSynthetic
-        internal var isCropping: Boolean = false
-
-        fun isCropping(isCropping: Boolean = true) = apply {
-            this.isCropping = isCropping
-        }
 
         fun cropType(type: CropType) = apply {
             this.type = type
@@ -111,7 +102,7 @@ class ImagePicker internal constructor(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         _binding = ImagePickerDialogBinding.inflate(inflater, container, false)
         return binding.root.apply {
             isVisible = mPick == PickFrom.ALL
@@ -192,13 +183,10 @@ class ImagePicker internal constructor(
      */
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                if (isCropping)
-                    uri.cropImage()
-                else
-                    returnResult(uri)
-            } else {
-                dismiss()
+            when {
+                success.not() -> dismiss()
+                mCropType != null -> uri.cropImage()
+                else -> returnResult(uri)
             }
         }
 
@@ -207,10 +195,11 @@ class ImagePicker internal constructor(
      */
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            if (uri == null)
-                dismiss()
-            else
-                uri.cropImage()
+            when {
+                uri == null -> dismiss()
+                mCropType != null -> uri.cropImage()
+                else -> returnResult(uri)
+            }
         }
 
     /**
@@ -271,6 +260,8 @@ class ImagePicker internal constructor(
      */
     private fun takePictureFromCamera() {
 
+        Log.i("CAMERA", "takePictureFromCamera: get picture called ")
+
         val file: File? = try {
             createImageFile()
         } catch (exception: IOException) {
@@ -312,9 +303,6 @@ class ImagePicker internal constructor(
             }
         else
             cameraPermissionLauncher.launch((Manifest.permission.CAMERA))
-
-        dismiss()
-
     }
 
     /**
@@ -366,7 +354,7 @@ class ImagePicker internal constructor(
                 setShowCropOverlay(true)
                 setScaleType(CropImageView.ScaleType.CENTER)
 
-                when (mType) {
+                when (mCropType) {
                     CropType.SQUARE -> {
                         setAspectRatio(1, 1)
                         setCropShape(CropImageView.CropShape.OVAL)
