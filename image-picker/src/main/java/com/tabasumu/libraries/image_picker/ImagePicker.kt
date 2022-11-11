@@ -183,13 +183,10 @@ class ImagePicker internal constructor(
      */
     private val cameraLauncher =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-            if (success) {
-                if (mCropType != null)
-                    uri.cropImage()
-                else
-                    returnResult(uri)
-            } else {
-                dismiss()
+            when {
+                success.not() -> dismiss()
+                mCropType != null -> uri.cropImage()
+                else -> returnResult(uri)
             }
         }
 
@@ -198,11 +195,11 @@ class ImagePicker internal constructor(
      */
     private val galleryLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-            if (uri == null)
-                dismiss()
-            else if (mCropType != null)
-                uri.cropImage()
-            else returnResult(uri)
+            when {
+                uri == null -> dismiss()
+                mCropType != null -> uri.cropImage()
+                else -> returnResult(uri)
+            }
         }
 
     /**
@@ -263,6 +260,8 @@ class ImagePicker internal constructor(
      */
     private fun takePictureFromCamera() {
 
+        Log.i("CAMERA", "takePictureFromCamera: get picture called ")
+
         val file: File? = try {
             createImageFile()
         } catch (exception: IOException) {
@@ -304,9 +303,6 @@ class ImagePicker internal constructor(
             }
         else
             cameraPermissionLauncher.launch((Manifest.permission.CAMERA))
-
-        dismiss()
-
     }
 
     /**
